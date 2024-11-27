@@ -114,7 +114,10 @@ class RestaurantRecommender:
 
 
 # Load the recommender model when the app starts
-recommender = RestaurantRecommender.load_model('restaurant_recommender.pkl')
+recommender = RestaurantRecommender.load_model('rr.pkl')
+
+
+
 
 
 # Initialize the Flask app
