@@ -86,7 +86,7 @@ class RestaurantRecommender:
         recommended_restaurants = recommended_restaurants.sort_values(by='distance')
 
         # Show Top 3 Recommendations
-        return recommended_restaurants[['Restaurant Name', 'City', 'Cuisines', 'Average Cost for two', 'Aggregate rating', 'distance']].head(3)
+        return recommended_restaurants[['Restaurant Name', 'City', 'Latitude', 'Longitude', 'Cuisines', 'Average Cost for two', 'Aggregate rating', 'distance']].head(3)
 
 
 
