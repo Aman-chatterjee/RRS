@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-import pickle
+import joblib
 import os
 from math import radians, sin, cos, sqrt, atan2
 from sklearn.preprocessing import StandardScaler
@@ -95,26 +95,24 @@ class RestaurantRecommender:
 
     def save_model(self, filename):
         """
-        Save the recommender model (including KNN, StandardScaler, and restaurant data) to a pickle file.
+        Save the recommender model (including KNN, StandardScaler, and restaurant data) to a joblib file.
         """
-        with open(filename, 'wb') as f:
-            pickle.dump(self, f)
+        joblib.dump(self, filename)  # Using joblib to save the entire model
         print(f"Model saved as {filename}")
 
 
     @staticmethod
     def load_model(filename):
         """
-        Load the recommender model from a pickle file.
+        Load the recommender model from a joblib file.
         """
-        with open(filename, 'rb') as f:
-            recommender = pickle.load(f)
+        model = joblib.load(filename)  # Using joblib to load the model
         print(f"Model loaded from {filename}")
-        return recommender
+        return model
 
 
 # Load the recommender model when the app starts
-recommender = RestaurantRecommender.load_model('rr.pkl')
+recommender = RestaurantRecommender.load_model('rr.joblib')
 
 
 
