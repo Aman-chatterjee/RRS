@@ -3,6 +3,8 @@ from recommender import RestaurantRecommender  # Import from the new module
 import os
 
 # Load the recommender model when the app starts
+recommender = RestaurantRecommender("zomato.csv")
+recommender.save_model("rr.joblib")
 recommender = RestaurantRecommender.load_model('rr.joblib')
 
 app = Flask(__name__)
