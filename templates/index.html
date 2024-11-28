@@ -125,7 +125,7 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
     // Initialize the map for selecting coordinates
-    const map = L.map('mapSelector').setView([23.4119, 85.4400], 13); // Default center (Ranchi)
+    const map = L.map('mapSelector').setView([28.632262,  77.219197], 13); // Default center (Ranchi)
 
     // Add OpenStreetMap tiles
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -133,11 +133,11 @@
     }).addTo(map);
 
     // Marker for selecting coordinates
-    let marker = L.marker([23.4119, 85.4400], { draggable: true }).addTo(map);
+    let marker = L.marker([28.632262,  77.219197], { draggable: true }).addTo(map);
 
     // Set initial values in the input fields
-    document.getElementById('latitude').value = 23.4119;
-    document.getElementById('longitude').value = 85.4400;
+    document.getElementById('latitude').value = 28.632262;
+    document.getElementById('longitude').value = 77.219197;
 
     // Update latitude and longitude inputs when the marker is dragged
     marker.on('dragend', function (event) {
