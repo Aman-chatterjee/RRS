@@ -4,10 +4,196 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Restaurant Recommender</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        /* Header Style */
+        header {
+            background-color: #007BFF;
+            padding: 10px 20px;
+            color: white;
+            text-align: center;
+        }
+        /* Main Content */
+        h1 {
+            text-align: center;
+        }
+        form {
+            max-width: 400px;
+            margin: 20px auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        label {
+            display: block;
+            margin: 10px 0 5px;
+            font-weight: bold;
+        }
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #007BFF;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #output {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f4f4f4;
+        }
+        .error {
+            color: red;
+        }
+        .restaurant {
+            margin-bottom: 20px;
+        }
+        .restaurant h3 {
+            margin: 0 0 5px;
+        }
+        .restaurant p {
+            margin: 5px 0;
+        }
+        .map {
+            height: 400px;
+            width: 100%;
+            margin-top: 10px;
+            border: 1px solid #ddd;
+        }
+    </style>
 </head>
 <body>
-    <h1>Welcome to the Restaurant Recommender</h1>
-    <p>Use our service to find the best restaurants that match your preferences!</p>
-    <p>To get started, send a POST request to <code>/recommend</code> with your preferences.</p>
+
+<!-- Simple Blue Header -->
+<header>
+    <h1>Restaurant Recommender</h1>
+</header>
+
+<form id="recommendationForm">
+    <label for="cuisines">Cuisines (comma-separated)</label>
+    <input type="text" id="cuisines" name="cuisines" placeholder="e.g., north indian, chinese" required>
+
+    <label for="cost_for_one">Cost for One</label>
+    <input type="number" id="cost_for_one" name="cost_for_one" placeholder="e.g., 300" required>
+
+    <label for="min_rating">Minimum Rating</label>
+    <input type="number" step="0.1" id="min_rating" name="min_rating" placeholder="e.g., 4.5" required>
+
+    <label for="max_distance">Maximum Distance (in kilometers)</label>
+    <input type="number" id="max_distance" name="max_distance" placeholder="e.g., 200" required>
+
+    <label for="latitude">Latitude</label>
+    <input type="number" step="0.0000000000000001" id="latitude" name="latitude" placeholder="e.g., 23.411937453272714" required>
+
+    <label for="longitude">Longitude</label>
+    <input type="number" step="0.0000000000000001" id="longitude" name="longitude" placeholder="e.g., 85.44005840658166" required>
+
+    <label for="city">City</label>
+    <input type="text" id="city" name="city" placeholder="e.g., Ranchi" required>
+
+    <button type="submit">Get Recommendations</button>
+</form>
+
+<div id="output"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    document.getElementById("recommendationForm").addEventListener("submit", async function(event) {
+        event.preventDefault();
+
+        const cuisines = document.getElementById("cuisines").value.toLowerCase().split(",").map(item => item.trim());
+        const costForOne = document.getElementById("cost_for_one").value;
+        const minRating = document.getElementById("min_rating").value;
+        const maxDistance = document.getElementById("max_distance").value;
+        const latitude = document.getElementById("latitude").value;
+        const longitude = document.getElementById("longitude").value;
+        const city = document.getElementById("city").value.toLowerCase();
+
+        const userPreferences = {
+            cuisines: cuisines,
+            cost_for_one: parseFloat(costForOne),
+            min_rating: parseFloat(minRating),
+            max_distance: parseInt(maxDistance, 10),
+            latitude: parseFloat(latitude),
+            longitude: parseFloat(longitude),
+            city: city
+        };
+
+        const outputDiv = document.getElementById("output");
+        outputDiv.innerHTML = "Loading...";
+
+        try {
+            const response = await fetch("/recommend", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(userPreferences)
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                // Clear the output div
+                outputDiv.innerHTML = "";
+
+                // Display each restaurant with a separate map
+                result.forEach((restaurant, index) => {
+                    const restaurantDiv = document.createElement("div");
+                    restaurantDiv.classList.add("restaurant");
+
+                    restaurantDiv.innerHTML = `
+                        <h3>${restaurant["Restaurant Name"]}</h3>
+                        <p><strong>Cuisines:</strong> ${restaurant.Cuisines.join(", ")}</p>
+                        <p><strong>City:</strong> ${restaurant.City}</p>
+                        <p><strong>Average Cost for Two:</strong> ₹${restaurant["Average Cost for two"]}</p>
+                        <p><strong>Aggregate Rating:</strong> ${restaurant["Aggregate rating"]}</p>
+                        <p><strong>Distance:</strong> ${restaurant.distance.toFixed(2)} kilometers</p>
+                        <p><strong>Location:</strong> (${restaurant.Latitude}, ${restaurant.Longitude})</p>
+                        <div id="map${index}" class="map"></div>
+                    `;
+
+                    outputDiv.appendChild(restaurantDiv);
+
+                    // Create a map for this restaurant
+                    const map = L.map(`map${index}`).setView([restaurant.Latitude, restaurant.Longitude], 15);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        maxZoom: 19
+                    }).addTo(map);
+
+                    L.marker([restaurant.Latitude, restaurant.Longitude])
+                        .addTo(map)
+                        .bindPopup(`<strong>${restaurant["Restaurant Name"]}</strong><br>
+                                    Rating: ${restaurant["Aggregate rating"]}<br>
+                                    Distance: ${restaurant.distance.toFixed(2)} km`)
+                        .openPopup();
+                });
+
+            } else {
+                // Display error message
+                outputDiv.innerHTML = `<p class="error">${result.error}</p>`;
+            }
+        } catch (error) {
+            outputDiv.innerHTML = `<p class="error">An error occurred: ${error.message}</p>`;
+        }
+    });
+</script>
+
 </body>
 </html>
