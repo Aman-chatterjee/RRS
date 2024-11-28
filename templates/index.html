@@ -78,6 +78,9 @@
         }
     </style>
 </head>
+
+
+
 <body>
 
 <!-- Simple Blue Header -->
@@ -87,7 +90,7 @@
 
 <form id="recommendationForm">
     <label for="cuisines">Cuisines (comma-separated)</label>
-    <input type="text" id="cuisines" name="cuisines" placeholder="e.g., north indian, chinese" required>
+    <input type="text" id="cuisines" name="cuisines" placeholder="e.g., north indian, chinese, Fast Food, Desserts, Burger, Cafe, Street Food" required>
 
     <label for="cost_for_one">Cost for One</label>
     <input type="number" id="cost_for_one" name="cost_for_one" placeholder="e.g., 300" required>
@@ -98,11 +101,13 @@
     <label for="max_distance">Maximum Distance (in kilometers)</label>
     <input type="number" id="max_distance" name="max_distance" placeholder="e.g., 200" required>
 
+    <div id="mapSelector" class="map" style="height: 300px; margin-bottom: 15px;"></div>
+
     <label for="latitude">Latitude</label>
-    <input type="number" step="0.0000000000000001" id="latitude" name="latitude" placeholder="e.g., 23.411937453272714" required>
+    <input type="number" step="0.0000000000000001" id="latitude" name="latitude" placeholder="Select on map" required readonly>
 
     <label for="longitude">Longitude</label>
-    <input type="number" step="0.0000000000000001" id="longitude" name="longitude" placeholder="e.g., 85.44005840658166" required>
+    <input type="number" step="0.0000000000000001" id="longitude" name="longitude" placeholder="Select on map" required readonly>
 
     <label for="city">City</label>
     <input type="text" id="city" name="city" placeholder="e.g., Ranchi" required>
@@ -110,10 +115,46 @@
     <button type="submit">Get Recommendations</button>
 </form>
 
+
 <div id="output"></div>
+
+
+
+
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
+    // Initialize the map for selecting coordinates
+    const map = L.map('mapSelector').setView([23.4119, 85.4400], 13); // Default center (Ranchi)
+
+    // Add OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+    }).addTo(map);
+
+    // Marker for selecting coordinates
+    let marker = L.marker([23.4119, 85.4400], { draggable: true }).addTo(map);
+
+    // Set initial values in the input fields
+    document.getElementById('latitude').value = 23.4119;
+    document.getElementById('longitude').value = 85.4400;
+
+    // Update latitude and longitude inputs when the marker is dragged
+    marker.on('dragend', function (event) {
+        const position = marker.getLatLng();
+        document.getElementById('latitude').value = position.lat.toFixed(6);
+        document.getElementById('longitude').value = position.lng.toFixed(6);
+    });
+
+    // Update marker position and inputs when the map is clicked
+    map.on('click', function (event) {
+        const { lat, lng } = event.latlng;
+        marker.setLatLng([lat, lng]);
+        document.getElementById('latitude').value = lat.toFixed(6);
+        document.getElementById('longitude').value = lng.toFixed(6);
+    });
+
+    // Form submission logic
     document.getElementById("recommendationForm").addEventListener("submit", async function(event) {
         event.preventDefault();
 
@@ -194,6 +235,7 @@
         }
     });
 </script>
+
 
 </body>
 </html>
