@@ -1,3 +1,2 @@
 # RRS
- Restaurant Recommendation WebApp
- Live: https://rrs-u5jl.onrender.com
+ Restaurant Recommendation System: https://rrs-u5jl.onrender.com
